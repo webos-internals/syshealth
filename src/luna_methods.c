@@ -392,18 +392,32 @@ static bool read_single_integer(LSHandle* lshandle, LSMessage *message, char *fi
 }
 
 //
-// Read /proc/cpuinfo
+// Read /sys/w1_bus_master1/gettemp
 //
-bool get_proc_cpuinfo_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message, "/bin/cat /proc/cpuinfo 2>&1");
+bool get_sys_w1_bus_master1_gettemp_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/bin/cat /sys/devices/w1_bus_master1/32*/gettemp 2>&1");
 }
 
 //
-// Read /proc/loadavg
+// Read /sys/w1_bus_master1/getcurrent
 //
-bool get_proc_loadavg_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+bool get_sys_w1_bus_master1_getcurrent_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return simple_command(lshandle, message, "/bin/cat /proc/loadavg 2>&1");
 }
+
+//
+// Read /sys/w1_bus_master1/getvoltage
+//
+bool get_sys_w1_bus_master1_getvoltage_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/bin/cat /sys/devices/w1_bus_master1/32*/getvoltage 2>&1");
+}
+
+//
+// Read /sys/w1_bus_master1/getpercent
+//
+bool get_sys_w1_bus_master1_getpercent_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/bin/cat /sys/devices/w1_bus_master1/32*/getpercent 2>&1");
+
 
 //
 // Read omap34xx_temp
@@ -412,283 +426,13 @@ bool get_omap34xx_temp_method(LSHandle* lshandle, LSMessage *message, void *ctx)
   return read_single_integer(lshandle, message, "/sys/devices/platform/omap34xx_temp/temp1_input");
 }
 
-//
-// Read scaling_cur_freq
-//
-bool get_scaling_cur_freq_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return read_single_integer(lshandle, message, "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
-}
-
-//
-// Read scaling_governor
-//
-bool get_scaling_governor_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return read_single_line(lshandle, message, "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-}
-
-//
-// Read cpufreq params
-//
-bool get_cpufreq_params_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  LSError lserror;
-  LSErrorInit(&lserror);
-  
-  struct stat statbuf;
-
-  bool error = false;
-  char *governor = NULL;
-
-  sprintf(buffer, "{\"returnValue\": true }");
-  
-  json_t *object = LSMessageGetPayloadJSON(message);
-
-  // Extract the governor argument from the message
-  json_t *param = json_find_first_label(object, "governor");
-  if (param && (param->child->type == JSON_STRING)) {
-    governor = param->child->text;
-  }
-
-  if (governor) {
-    sprintf(directory, "%s/%s", cpufreqdir, governor);
-  }
-  else {
-    sprintf(directory, "%s", cpufreqdir);
-  }
-
-  DIR *dp = opendir (directory);
-  if (!dp) {
-    sprintf(buffer, "{\"errorText\": \"Unable to open %s\", \"returnValue\": false, \"errorCode\": -1 }", directory);
-  }
-  else {
-    struct dirent *ep;
-    bool first = true;
-    sprintf(buffer, "{\"params\": [");
-  
-    while (ep = readdir (dp)) {
-      if (!strcmp(ep->d_name, ".") || !strcmp(ep->d_name, "..") ||
-	  !strcmp(ep->d_name, "stats") || !strcmp(ep->d_name, "affected_cpus") ||
-	  !strcmp(ep->d_name, "scaling_driver")) {
-	continue;
-      }
-
-      sprintf(filename, "%s/%s", directory, ep->d_name);
-
-      bool writeable = false;
-      bool directory = false;
-
-      if (!stat(filename, &statbuf)) {
-	if (statbuf.st_mode & S_IWUSR) {
-	  writeable = true;
-	}
-	if (statbuf.st_mode & S_IFDIR) {
-	  directory = true;
-	}
-      }
-      
-      strcpy(line,"");
-
-      if (directory) {
-	// Skip over other directories
-	continue;
-      }
-      else {
-	FILE *fp = fopen(filename, "r");
-	if (!fp) {
-	  sprintf(errorText, "Unable to open %s", filename);
-	  error = true;
-	}
-	else {
-	  if (!fgets(line, MAXLINLEN-1, fp)) {
-	    sprintf(errorText, "Unable to parse %s", filename);
-	    error = true;
-	  }
-	  else {
-	    line[strlen(line)-1] = '\0';
-	  }
-	  if (fclose(fp)) {
-	    sprintf(errorText, "Unable to close %s", filename);
-	    error = true;
-	  }
-	}
-	
-	if (error) {
-	  sprintf(buffer, "{\"errorText\": \"%s\", \"returnValue\": false, \"errorCode\": -1 }",
-		  errorText);
-	  break;
-	}
-	else {
-	  sprintf(buffer+strlen(buffer), "%s{\"name\": \"%s\", \"writeable\": %s, \"value\": \"%s\"}",
-		  (first ? "" : ", "), ep->d_name, (writeable ? "true" : "false"), json_escape_str(line));
-	  first = false;
-	}
-      }
-    }
-    if (closedir(dp)) {
-      sprintf(buffer, "{\"errorText\": \"Unable to close %s\", \"returnValue\": false, \"errorCode\": -1 }",
-	      directory);
-      error = true;
-    }
-
-    if (!error) {
-      strcat(buffer, "], \"returnValue\": ");
-      strcat(buffer, error ? "false" : "true");
-      if (governor) {
-	strcat(buffer, ", \"governor\": \"");
-	strcat(buffer, governor);
-	strcat(buffer, "\"");
-      }
-      strcat(buffer, "}");
-    }
-  }
-
-  // fprintf(stderr, "Message is %s\n", buffer);
-  if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
-
-  return true;
- error:
-  LSErrorPrint(&lserror, stderr);
-  LSErrorFree(&lserror);
- end:
-  return false;
-}
-
-//
-// Write cpufreq params
-//
-bool set_cpufreq_params_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  LSError lserror;
-  LSErrorInit(&lserror);
-
-  bool error = false;
-  char *governor = NULL;
-
-  json_t *object = LSMessageGetPayloadJSON(message);
-
-  // Extract the governor argument from the message
-  json_t *param = json_find_first_label(object, "governor");
-  if (param && (param->child->type == JSON_STRING)) {
-    governor = param->child->text;
-  }
-
-  if (governor) {
-    sprintf(directory, "%s/%s", cpufreqdir, governor);
-    sprintf(buffer, "{\"returnValue\": true, \"governor\": \"%s\"}", governor);
-  }
-  else {
-    sprintf(directory, "%s", cpufreqdir);
-    sprintf(buffer, "{\"returnValue\": true }");
-  }
-
-  // Extract the params argument from the message
-  json_t *params = json_find_first_label(object, "params");
-  if (!params || (params->child->type != JSON_ARRAY)) {
-    if (!LSMessageReply(lshandle, message,
-			"{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing params array\"}",
-			&lserror)) goto error;
-    return true;
-  }
-
-  json_t *entry = params->child->child;
-  while (entry) {
-    if (entry->type != JSON_OBJECT) {
-      if (!LSMessageReply(lshandle, message,
-			  "{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing params array element\"}",
-			  &lserror)) goto error;
-      return true;
-    }
-    json_t *name = json_find_first_label(entry, "name");
-    if (!name || (name->child->type != JSON_STRING) ||
-	(strspn(name->child->text, ALLOWED_CHARS) != strlen(name->child->text))) {
-      if (!LSMessageReply(lshandle, message,
-			  "{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing name entry\"}",
-			  &lserror)) goto error;
-      return true;
-    }
-    json_t *value = json_find_first_label(entry, "value");
-    if (!value || (value->child->type != JSON_STRING) ||
-	(strspn(value->child->text, ALLOWED_CHARS) != strlen(value->child->text))) {
-      if (!LSMessageReply(lshandle, message,
-			  "{\"returnValue\": false, \"errorCode\": -1, \"errorText\": \"Invalid or missing value entry\"}",
-			  &lserror)) goto error;
-      return true;
-    }
-
-    sprintf(filename, "%s/%s", directory, name->child->text);
-
-    fprintf(stderr, "Writing %s to %s\n", value->child->text, filename);
-
-    FILE *fp = fopen(filename, "w");
-    if (!fp) {
-      sprintf(errorText, "Unable to open %s", filename);
-      error = true;
-    }
-    else {
-      if (fputs(value->child->text, fp) < 0) {
-	sprintf(errorText, "Unable to write to %s", filename);
-	error = true;
-      }
-      if (fclose(fp)) {
-	sprintf(errorText, "Unable to close %s", filename);
-	error = true;
-      }
-    }
-      
-    if (error) {
-      sprintf(buffer, "{\"errorText\": \"%s\", \"returnValue\": false, \"errorCode\": -1 }",
-	      errorText);
-      break;
-    }
-    
-    entry = entry->next;
-  }
-
-  // fprintf(stderr, "Message is %s\n", buffer);
-  if (!LSMessageReply(lshandle, message, buffer, &lserror)) goto error;
-
-  return true;
- error:
-  LSErrorPrint(&lserror, stderr);
-  LSErrorFree(&lserror);
- end:
-  return false;
-}
-
-//
-// Read time_in_state
-//
-bool get_time_in_state_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message,
-			"/bin/cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state 2>&1");
-}
-
-//
-// Read total_trans
-//
-bool get_total_trans_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message,
-			"/bin/cat /sys/devices/system/cpu/cpu0/cpufreq/stats/total_trans 2>&1");
-}
-
-//
-// Read trans_table
-//
-bool get_trans_table_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message,
-			"/bin/cat /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table 2>&1");
-}
-
 LSMethod luna_methods[] = {
   { "status",			dummy_method },
-  { "get_proc_cpuinfo",		get_proc_cpuinfo_method },
-  { "get_proc_loadavg",		get_proc_loadavg_method },
+  { "get_w1_battery_temp",	get_sys_w1_bus_master1_gettemp_method },
+  { "get_w1_current",		get_sys_w1_bus_master1_getcurrent_method },
+  { "get_w1_voltage",		get_sys_w1_bus_master1_getvoltage_method },
+  { "get_w1_percent", 		get_sys_w1_bus_master1_getpercent_method },
   { "get_omap34xx_temp",	get_omap34xx_temp_method },
-  { "get_scaling_cur_freq",     get_scaling_cur_freq_method },
-  { "get_scaling_governor",     get_scaling_governor_method },
-  { "get_cpufreq_params",	get_cpufreq_params_method },
-  { "set_cpufreq_params",	set_cpufreq_params_method },
-  { "get_time_in_state",	get_time_in_state_method },
-  { "get_total_trans",		get_total_trans_method },
-  { "get_trans_table",		get_trans_table_method },
   { 0, 0 }
 };
 
