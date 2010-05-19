@@ -1,0 +1,16 @@
+{
+	"title": "SysHealth",
+	"id": "org.webosinternals.syshealth",
+	"version": "0.0.1",
+	"release_date":	"10-May-2010",
+	"vendor": "WebOS Internals",
+	"vendor_email":	"support@webos-internals.org",
+	"vendor_url": "http://www.webos-internals.org/wiki/Application:Govnah",
+	"type": "web",
+	"main": "index.html",
+	"icon": "icon.png",
+	"miniicon": "miniicon.png",
+	"removable": "true",
+	"noWindow": true,
+	"noDeprecatedStyles": true 
+}
