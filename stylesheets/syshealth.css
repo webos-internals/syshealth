@@ -1,0 +1,160 @@
+/*
+ * Global Styles
+ */
+.scene-fade-top
+{
+	position: fixed; 
+	top: 0; 
+	z-index: 11000;
+	height: 30px; 
+	width: 100%;
+	background: url(../images/palm-default/scrollFade-top.png) top center repeat-x;
+	-webkit-palm-mouse-target: ignore;
+}
+.scene-fade-bottom
+{
+	position: fixed; 
+	bottom: 0; 
+	z-index: 11000;
+	height: 30px; 
+	width: 100%;
+	background: url(../images/palm-default/scrollFade-bottom.png) bottom center repeat-x;
+	-webkit-palm-mouse-target: ignore;
+}
+body.palm-dark .scene-fade-top
+{
+	background: url(../images/palm-dark/scrollFade-top.png) top center repeat-x;
+}
+body.palm-dark .scene-fade-bottom
+{
+	background: url(../images/palm-dark/scrollFade-bottom.png) bottom center repeat-x;
+}
+.palm-separator
+{
+  height: 2px;
+ /* margin: 0 -18px;*/
+  background: url(../images/palm-default/list-separator-light.png) bottom left repeat-x;
+}
+body.palm-dark .palm-separator
+{
+  background: url(../images/palm-dark/list-separator-dark.png) bottom left repeat-x;
+}
+.palm-list .palm-row-wrapper .sub
+{
+	top: -19px;
+	color: #999;
+	font-size: 14px;
+	padding-top: 0px;
+	margin-top: -14px;
+	padding-left: 16px;
+	padding-bottom: 6px;
+}
+
+
+/*
+ * Main Scene Styles
+ */
+.main .palm-page-header-wrapper .icon
+{
+	width: 76px;
+	height: 75px;
+	background: url(../icon.png) center center no-repeat;
+}
+.main .palm-page-header-wrapper .title
+{
+	padding-left: 80px;
+}
+.main .palm-page-header-wrapper .title.main
+{
+	font-size: 30px;
+	padding-top: 5px;
+	padding-bottom: 0px;
+}
+.main .palm-page-header-wrapper .title .version
+{
+	font-size: 12px;
+	color: #888;
+	text-transform: lowercase;
+}
+.main .palm-page-header-wrapper .title.sub
+{
+	font-size: 14px;
+	padding-top: 0px;
+	margin-top: 0px;
+}
+
+
+/*
+ * Generic Form Styles
+ */
+.form .palm-row-wrapper .note
+{
+	clear: both;
+	padding-left: 10px;
+	font-style: italic;
+}
+.form .palm-row-wrapper .label.left
+{
+	padding-left: 6px;
+	-webkit-palm-mouse-target: ignore;
+}
+.form .palm-list-selector .label
+{
+	float: left;
+}
+.form .palm-list-selector .title
+{
+	text-align: right;
+}
+.form .palm-group.disabled
+{
+	opacity: 0.35;
+}
+.form .palm-row .title.right .unit
+{
+	float: right;
+	padding-left: 8px;
+	padding-top: 4px;
+	text-align: left;
+	color: #aaa;
+	font-size: 16px;
+}
+
+/*
+ * Help Scene Styles
+ */
+.help .list_scene
+{
+	position:relative;
+	left:48px;
+	top:10px;
+	width:32px; 
+	height:32px;
+	vertical-align:bottom;
+	padding: 0px 0px 0px 5px;
+	float:left;
+}
+.help .img_web
+{
+	position:relative;
+	left:8px;
+	top:10px;
+	width:32px; 
+	height:32px;
+	background: url(../images/help/application-web.png) no-repeat  bottom;
+	padding: 0px 0px 0px 5px;
+	float:left;
+}
+.help .img_email
+{
+	position:relative;
+	left:8px;
+	top:10px;
+	width:32px; 
+	height:32px;
+	background: url(../images/help/application-email.png) no-repeat bottom;
+	vertical-align:bottom;
+	padding: 0px 0px 0px 5px;
+	float:left;
+}
+
