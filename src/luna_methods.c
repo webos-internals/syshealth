@@ -418,12 +418,28 @@ bool get_sys_w1_bus_master1_getvoltage_method(LSHandle* lshandle, LSMessage *mes
 bool get_sys_w1_bus_master1_getpercent_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return simple_command(lshandle, message, "/bin/cat /sys/devices/w1_bus_master1/32*/getpercent 2>&1");
 
-
 //
 // Read omap34xx_temp
 //
 bool get_omap34xx_temp_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return read_single_integer(lshandle, message, "/sys/devices/platform/omap34xx_temp/temp1_input");
+}
+
+//
+// Run VACUUM job on SQLite databases
+// Probably need file to test if *db.* is a SQLite db
+//
+bool run_sqlite_vacuum(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/var/svc/org.webosinternals.syshealth/sqlite_vacuum.sh 2>&1");
+}
+
+//
+// Remove email and attachements older than 7 days
+// Need a way to pass in an integer to set the number of days. Probably 1-21 days?
+// Need a way to pop up a reboot dialog after this runs
+//
+bool run_email_cleanup(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/var/svc/org.webosinternals.syshealth/email_cleanup.sh 2>&1");
 }
 
 LSMethod luna_methods[] = {
