@@ -8,3 +8,4 @@ do
     echo "cleaning $i"
     echo 'VACUUM;' | /usr/bin/sqlite3 $i
 done
+
