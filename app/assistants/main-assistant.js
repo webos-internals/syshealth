@@ -52,14 +52,119 @@ MainAssistant.prototype.setup = function()
 	// setup menu
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, this.menuModel);
 	
-	
+	// setup buttons
+        this.controller.setupWidget('drop_caches', this.attributes = { type: Mojo.Widget.activityButton },
+                           this.model =
+                           {
+                                   buttonLabel: 'Drop Caches',
+                                   buttonClass: 'palm-button',
+                                   disabled: false
+                           }
+        );
+
+        this.controller.setupWidget('email_cleanup', this.attributes = { type: Mojo.Widget.activityButton },
+                           this.model =
+                           {
+                                   buttonLabel: 'Email Cleanup',
+                                   buttonClass: 'palm-button',
+                                   disabled: false
+                           }
+        );
+
+        this.controller.setupWidget('sqlite_vaccum', this.attributes = { type: Mojo.Widget.activityButton },
+                           this.model =
+                           {
+                                   buttonLabel: 'SQLite Vaccum',
+                                   buttonClass: 'palm-button',
+                                   disabled: false
+                           }
+        );
 	
 	this.visible = this.visible.bindAsEventListener(this);
 	this.invisible = this.invisible.bindAsEventListener(this);
 	this.controller.listen(this.controller.stageController.document, Mojo.Event.stageActivate,   this.visible);
 	this.controller.listen(this.controller.stageController.document, Mojo.Event.stageDeactivate, this.invisible);
 	
+        this.controller.listen('drop_caches', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'drop_caches'));
+        this.controller.listen('email_cleanup', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'email_cleanup'));
+        this.controller.listen('sqlite_vaccum', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'sqlite_vaccum'));
+                 
+        var r = new Mojo.Service.Request('palm://org.webosinternals.syshealth',
+                           {
+                                     method: 'status',
+                                     onSuccess: this.callbackFunction.bindAsEventListener(this),
+                                     onFailure: this.callbackFunction.bindAsEventListener(this)
+                           }
+        );
+
 };
+
+MainAssistant.prototype.callbackFunction = function(payload, item)
+{
+	//for (p in payload) alert(p + ': ' + payload[p]);
+	
+	if (!payload) 
+	{
+		this.alertMessage('SysHealth', $L("Cannot access the service. Have you installed it? If so, reboot your phone and try again."));
+	}
+	else if (payload.errorCode == -1) 
+	{
+		if (payload.errorText == "org.webosinternals.syshealth is not running.") 
+		{
+			this.alertMessage('SysHealth', $L("The service is not running. Have you installed it? If so, reboot your phone and try again."));
+		}
+		else 
+		{
+			this.alertMessage('SysHealth', payload.errorText);
+		}
+	}
+	else if (payload.errorCode == "ErrorGenericUnknownMethod") 
+	{
+		this.alertMessage('SysHealth', $L("The service version is too old. First try rebooting your phone, or reinstall it and try again."));
+	}
+	else 
+	{
+		if (payload.apiVersion && payload.apiVersion < this.ipkgServiceVersion) 
+		{
+			this.alertMessage('SysHealth', $L("The service version is too old. First try rebooting your phone, or reinstall it and try again."));
+		}
+	}
+	
+	if (item) this.controller.get(item).mojo.deactivate();
+}
+
+MainAssistant.prototype.doAction = function(action)
+{
+	try
+	{
+		var r = new Mojo.Service.Request
+		(
+			'palm://org.webosinternals.syshealth',
+			{
+				method: action,
+				onSuccess: this.callbackFunction.bindAsEventListener(this, action),
+				onFailure: this.callbackFunction.bindAsEventListener(this, action)
+			}
+		);
+	}
+	catch (e)
+	{
+		Mojo.Log.logException(e, 'main#doAction');
+		this.alertMessage('main#doAction Error', e);
+	}
+}
+
+MainAssistant.prototype.alertMessage = function(title, message)
+{
+	this.controller.showAlertDialog(
+	{
+	    onChoose: function(value) {},
+		allowHTMLMessage: true,
+	    title: title,
+	    message: message,
+	    choices:[{label:$L('Ok'), value:""}]
+    });
+}
 
 MainAssistant.prototype.activate = function(event)
 {
