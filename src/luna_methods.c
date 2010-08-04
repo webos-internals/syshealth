@@ -392,20 +392,6 @@ static bool read_single_integer(LSHandle* lshandle, LSMessage *message, char *fi
 }
 
 //
-// Read /sys/w1_bus_master1/gettemp
-//
-bool get_sys_w1_bus_master1_gettemp_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message, "/bin/cat /sys/devices/w1_bus_master1/32*/gettemp 2>&1");
-}
-
-//
-// Read /sys/w1_bus_master1/getcurrent
-//
-bool get_sys_w1_bus_master1_getcurrent_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return simple_command(lshandle, message, "/bin/cat /proc/loadavg 2>&1");
-}
-
-//
 // Read /sys/w1_bus_master1/getvoltage
 //
 bool get_sys_w1_bus_master1_getvoltage_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
@@ -417,13 +403,6 @@ bool get_sys_w1_bus_master1_getvoltage_method(LSHandle* lshandle, LSMessage *mes
 //
 bool get_sys_w1_bus_master1_getpercent_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return simple_command(lshandle, message, "/bin/cat /sys/devices/w1_bus_master1/32*/getpercent 2>&1");
-
-//
-// Read omap34xx_temp
-//
-bool get_omap34xx_temp_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
-  return read_single_integer(lshandle, message, "/sys/devices/platform/omap34xx_temp/temp1_input");
-}
 
 //
 // Run VACUUM job on SQLite databases
@@ -442,13 +421,20 @@ bool run_email_cleanup(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return simple_command(lshandle, message, "/var/svc/org.webosinternals.syshealth/email_cleanup.sh 2>&1");
 }
 
+//
+// Flush caches to free up some memory
+//
+bool run_drop_caches(LSHandle* lshandle, LSMessage *message, void *ctx) {
+  return simple_command(lshandle, message, "/var/svc/org.webosinternals.syshealth/email_cleanup.sh 2>&1");
+}
+
 LSMethod luna_methods[] = {
   { "status",			dummy_method },
-  { "get_w1_battery_temp",	get_sys_w1_bus_master1_gettemp_method },
-  { "get_w1_current",		get_sys_w1_bus_master1_getcurrent_method },
   { "get_w1_voltage",		get_sys_w1_bus_master1_getvoltage_method },
   { "get_w1_percent", 		get_sys_w1_bus_master1_getpercent_method },
-  { "get_omap34xx_temp",	get_omap34xx_temp_method },
+  { "sqlite_vacuum", 		run_sqlite_vacuum },
+  { "email_cleanup", 		run_email_cleanup },
+  { "drop_caches", 		run_drop_caches },
   { 0, 0 }
 };
 
