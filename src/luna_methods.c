@@ -32,15 +32,9 @@
 // We use static buffers instead of continually allocating and deallocating stuff,
 // since we're a long-running service, and do not want to leak anything.
 //
-static char line[MAXLINLEN];
-static char filename[MAXLINLEN];
-static char directory[MAXLINLEN];
 static char buffer[MAXBUFLEN];
 static char esc_buffer[MAXBUFLEN];
 static char run_command_buffer[MAXBUFLEN];
-static char errorText[MAXLINLEN];
-
-static char *cpufreqdir = "/sys/devices/system/cpu/cpu0/cpufreq";
 
 //
 // Escape a string so that it can be used directly in a JSON response.
@@ -325,6 +319,8 @@ static bool simple_command(LSHandle* lshandle, LSMessage *message, char *command
 static bool read_single_line(LSHandle* lshandle, LSMessage *message, char *file) {
   LSError lserror;
   LSErrorInit(&lserror);
+
+  char line[MAXLINLEN];
 
   FILE *fp = fopen(file, "r");
 
