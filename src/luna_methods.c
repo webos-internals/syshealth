@@ -399,6 +399,7 @@ bool get_sys_w1_bus_master1_getvoltage_method(LSHandle* lshandle, LSMessage *mes
 //
 bool get_sys_w1_bus_master1_getpercent_method(LSHandle* lshandle, LSMessage *message, void *ctx) {
   return simple_command(lshandle, message, "/bin/cat /sys/devices/w1_bus_master1/32*/getpercent 2>&1");
+}
 
 //
 // Run VACUUM job on SQLite databases
