@@ -1,7 +1,7 @@
 {
 	"title": "SysHealth",
 	"id": "org.webosinternals.syshealth",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"release_date":	"10-May-2010",
 	"vendor": "WebOS Internals",
 	"vendor_email":	"support@webos-internals.org",
