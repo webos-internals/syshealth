@@ -101,7 +101,7 @@ MainAssistant.prototype.setup = function()
 
 MainAssistant.prototype.callbackFunction = function(payload, item)
 {
-	//for (p in payload) alert(p + ': ' + payload[p]);
+	for (p in payload) Mojo.Log.error("service: "+ p + ': ' + payload[p]);
 	
 	if (!payload) 
 	{
@@ -133,8 +133,9 @@ MainAssistant.prototype.callbackFunction = function(payload, item)
 	if (item) this.controller.get(item).mojo.deactivate();
 }
 
-MainAssistant.prototype.doAction = function(action)
+MainAssistant.prototype.doAction = function(event,action)
 {
+Mojo.Log.error("calling service method: "+action);
 	try
 	{
 		var r = new Mojo.Service.Request
