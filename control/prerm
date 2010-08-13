@@ -25,4 +25,7 @@ rm -f /usr/share/dbus-1/system-services/${PID}.service /var/palm/system-services
 # Remove the upstart script
 rm -f /etc/event.d/${PID} /var/palm/event.d/${PID} /var/palm/event.d/${PID}-settings
 
+# Remove the scripts
+rm -rf /var/svc/${PID}
+
 exit 0

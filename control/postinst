@@ -36,6 +36,10 @@ else
   cp $APPS/usr/palm/applications/${PID}/dbus/${PID}.service /usr/share/dbus-1/system-services/${PID}.service
 fi
 
+# Install the saverestore scripts
+mkdir -p /var/svc/${PID}
+tar -C /var/svc/${PID} -zxf $APPS/usr/palm/applications/${PID}/scripts.tgz
+
 # Install the upstart script
 if [ -d /var/palm/event.d ] ; then
   cp $APPS/usr/palm/applications/${PID}/upstart/${PID} /var/palm/event.d/${PID}
