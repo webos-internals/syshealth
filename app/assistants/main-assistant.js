@@ -31,6 +31,7 @@ function MainAssistant()
 	};
 	
 	this.isVisible = false;
+	this.request = false;
 };
 
 MainAssistant.prototype.setup = function()
@@ -89,7 +90,7 @@ MainAssistant.prototype.setup = function()
         this.controller.listen('email_cleanup', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'email_cleanup'));
         this.controller.listen('sqlite_vacuum', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'sqlite_vacuum'));
                  
-        var r = new Mojo.Service.Request('palm://org.webosinternals.syshealth',
+        this.request = new Mojo.Service.Request('palm://org.webosinternals.syshealth',
                            {
                                      method: 'status',
                                      onSuccess: this.callbackFunction.bindAsEventListener(this),
@@ -138,7 +139,7 @@ MainAssistant.prototype.doAction = function(event,action)
 Mojo.Log.error("calling service method: "+action);
 	try
 	{
-		var r = new Mojo.Service.Request
+		this.request = new Mojo.Service.Request
 		(
 			'palm://org.webosinternals.syshealth',
 			{
