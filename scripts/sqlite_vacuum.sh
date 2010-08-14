@@ -5,7 +5,16 @@
 
 for i in `find / -name "*.db*" -print`
 do
-    echo "cleaning $i"
-    echo 'VACUUM;' | /usr/bin/sqlite3 $i
+
+    file=`basename $i`
+        
+    if [ $file = Thumbs.db ]
+    then
+        continue
+    else
+    	echo "cleaning $i"
+    	echo 'VACUUM;' | /usr/bin/sqlite3 $i
+    fi
+
 done
 
