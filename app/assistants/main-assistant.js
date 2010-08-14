@@ -31,6 +31,7 @@ function MainAssistant()
 	};
 	
 	this.isVisible = false;
+	this.request = false;
 };
 
 MainAssistant.prototype.setup = function()
@@ -71,10 +72,10 @@ MainAssistant.prototype.setup = function()
                            }
         );
 
-        this.controller.setupWidget('sqlite_vaccum', this.attributes = { type: Mojo.Widget.activityButton },
+        this.controller.setupWidget('sqlite_vacuum', this.attributes = { type: Mojo.Widget.activityButton },
                            this.model =
                            {
-                                   buttonLabel: 'SQLite Vaccum',
+                                   buttonLabel: 'SQLite Vacuum',
                                    buttonClass: 'palm-button',
                                    disabled: false
                            }
@@ -87,9 +88,9 @@ MainAssistant.prototype.setup = function()
 	
         this.controller.listen('drop_caches', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'drop_caches'));
         this.controller.listen('email_cleanup', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'email_cleanup'));
-        this.controller.listen('sqlite_vaccum', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'sqlite_vaccum'));
+        this.controller.listen('sqlite_vacuum', Mojo.Event.tap, this.doAction.bindAsEventListener(this,'sqlite_vacuum'));
                  
-        var r = new Mojo.Service.Request('palm://org.webosinternals.syshealth',
+        this.request = new Mojo.Service.Request('palm://org.webosinternals.syshealth',
                            {
                                      method: 'status',
                                      onSuccess: this.callbackFunction.bindAsEventListener(this),
@@ -138,7 +139,7 @@ MainAssistant.prototype.doAction = function(event,action)
 Mojo.Log.error("calling service method: "+action);
 	try
 	{
-		var r = new Mojo.Service.Request
+		this.request = new Mojo.Service.Request
 		(
 			'palm://org.webosinternals.syshealth',
 			{
